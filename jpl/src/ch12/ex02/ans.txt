@@ -1,0 +1,20 @@
+PassengerVehicleオブジェクトの店員を負の値に設定しようとした
+- IllegalArgumentException
+
+オブジェクトがその初期値を設定するのに使用する設定ファイルに、文法エラーが見つかった
+- Exception
+
+プログラマが指定した単語を文字列の配列から検索するメソッドが、その単語を発見できない
+- 空の配列を返す
+
+Open メソッドへ指定されたファイルが存在しない
+- FileNotFoundException
+
+Open メソッドへ指定されたファイルが存在するが、セキュリティにより使用できない
+- FileNotFoundException
+
+リモートのサーバプロセスにネットワークコネクションを確率しようとするが、リモートのマシンと接続できない
+- TimeoutException
+
+リモートのサーバプロセスとのやりとりの最中に、ネットワークコネクションが切れる
+- TimeoutException

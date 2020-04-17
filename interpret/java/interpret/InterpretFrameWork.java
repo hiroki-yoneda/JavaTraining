@@ -9,17 +9,25 @@ import java.lang.reflect.Modifier;
 
 public class InterpretFrameWork {
 
-	public static Object generateObject(String className)
-			throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException,
-			ClassNotFoundException {
-		Class<?> clazz = Class.forName(className);
-		return clazz.getDeclaredConstructor().newInstance(); // Class#newInstanceは非推奨 (https://blog.y-yuki.net/entry/2017/07/10/173000)
+	public static Object generateObject(Constructor<?> cons, Object... args)
+			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		Object instancedObject;
+		if (args.length == 0) {
+			instancedObject = cons.newInstance();
+		} else {
+			instancedObject = cons.newInstance(args);
+		}
+		return instancedObject; // Class#newInstanceは非推奨 (https://blog.y-yuki.net/entry/2017/07/10/173000)
 	}
 
 	public static Constructor<?>[] getConstractor(String className) throws ClassNotFoundException {
 		Class<?> clazz = Class.forName(className);
-        Constructor<?>[] consArray = clazz.getDeclaredConstructors();
-        return consArray;
+		Constructor<?>[] consArray = clazz.getDeclaredConstructors();
+		return consArray;
+	}
+
+	public static Class<?>[] getConstructorParams(Constructor<?> constructor) {
+		return constructor.getParameterTypes();
 	}
 
 	public static Field[] getFields(String className) throws ClassNotFoundException {
@@ -29,12 +37,12 @@ public class InterpretFrameWork {
 		return fields;
 	}
 
+	public static Object getFieldValue(Field field, Object instancedClass) throws IllegalArgumentException, IllegalAccessException {
+		return field.get(instancedClass);
+	}
+
 	// 指定されたオブジェクトのフィールド名の値を更新する
-	public static <V> void updateField(String className, String fieldName, V value, Object instancedClass)
-			throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException,
-			ClassNotFoundException, NoSuchFieldException {
-		Class<?> clazz = Class.forName(className);
-		Field field = clazz.getDeclaredField(fieldName); // https://qiita.com/ohke/items/b096c5cb9d2932764f22
+	public static void updateField(Field field, Object instancedClass, Object value) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException {
 		field.setAccessible(true);
 		updateAccessibleField(field);
 		field.set(instancedClass, value);
@@ -54,12 +62,16 @@ public class InterpretFrameWork {
 		return clazz.getDeclaredMethods();
 	}
 
-	public static void invokeMethod(String className, String methodName, Object instancedClass)
+	public static void invokeMethod(Method method, Object instancedClass, Object... args)
 			throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException,
 			ClassNotFoundException {
-		Class<?> clazz = Class.forName(className);
-		Method method = clazz.getMethod(methodName);
-		method.invoke(instancedClass);
+		method.setAccessible(true);
+		if (args.length == 0) {
+			method.invoke(instancedClass);
+		}
+		if (args.length > 0) {
+			method.invoke(instancedClass, args);
+		}
 	}
 
 	public static <T> T[] generateArray(Class<T> type, int size) {

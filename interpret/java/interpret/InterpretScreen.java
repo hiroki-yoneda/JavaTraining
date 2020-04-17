@@ -5,30 +5,36 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-public class InterpretScreen extends JFrame implements ActionListener{
+import interpret.subScreen.ConstructorScreen;
+import interpret.subScreen.FieldScreen;
+import interpret.subScreen.MethodScreen;
 
-	List<Object> objList;
+public class InterpretScreen extends JFrameUtils implements ActionListener {
+
+	private static List<Constructor<?>> constructorList = new ArrayList<>();
+	private static List<Method> methodList = new ArrayList<>();
+	private static List<Field> fieldList = new ArrayList<>();
 
 	private static final String DEFINE = "define";
 	private static final String ISEXIST = "isExist";
 	private static final String EXECUTE = "execute";
-	private static final String GENERATE = "generate";
+	private static final String SET_VALUE = "set_value";
 	private static final String UPDATE = "update";
 
 	private static JLabel arraySizeLabel, arrayLabel, typeLabel, constructorLabel, methodLabel, fieldLabel, valueLabel;
@@ -38,182 +44,154 @@ public class InterpretScreen extends JFrame implements ActionListener{
 
 	public InterpretScreen() {
 		setTitle("InterpretReflection");
-		setSize(600, 400);
-	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setSize(800, 400);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-	    // 中央に配置するUIの設定 ////////////////////////////////////////////////////////////
-	    GridBagLayout gbl = new GridBagLayout();
-	    JPanel centerPanel = new JPanel();
-	    centerPanel.setLayout(gbl);
-	    GridBagConstraints gbc = new GridBagConstraints();
+		// 中央に配置するUIの設定 ////////////////////////////////////////////////////////////
+		GridBagLayout gbl = new GridBagLayout();
+		JPanel centerPanel = new JPanel();
+		centerPanel.setLayout(gbl);
+		GridBagConstraints gbc = new GridBagConstraints();
 
-	    arraySizeLabel = createJLabel("ArraySize", 0, 0, centerPanel, gbl, gbc);
-	    arrayTextField = createJTextField("", 1, 0, centerPanel, gbl, gbc);
-	    createJButton(DEFINE, 2, 0, centerPanel, gbl, gbc).addActionListener(this);
+		arraySizeLabel = createJLabel("ArraySize", 0, 0, centerPanel, gbl, gbc);
+		arrayTextField = createJTextField("", 1, 0, centerPanel, gbl, gbc);
+		createJButton(DEFINE, 2, 0, centerPanel, gbl, gbc).addActionListener(this);
 
-	    arrayLabel = createJLabel("Array", 0, 1, centerPanel, gbl, gbc);
-	    arrayComboBox = createJComboBox(1, 1, centerPanel, gbl, gbc);
+		arrayLabel = createJLabel("Array", 0, 1, centerPanel, gbl, gbc);
+		arrayComboBox = createJComboBox(1, 1, centerPanel, gbl, gbc);
 
-	    typeLabel = createJLabel("Type", 0, 2, centerPanel, gbl, gbc);
-	    typeTextField = createJTextField("interpret.TestClass", 1, 2, centerPanel, gbl, gbc);
-	    createJButton(ISEXIST, 2, 2, centerPanel, gbl, gbc).addActionListener(this);
+		typeLabel = createJLabel("Type", 0, 2, centerPanel, gbl, gbc);
+		typeTextField = createJTextField("interpret.TestClass", 1, 2, centerPanel, gbl, gbc);
+		createJButton(ISEXIST, 2, 2, centerPanel, gbl, gbc).addActionListener(this);
 
-	    constructorLabel = createJLabel("Constructor", 0, 3, centerPanel, gbl, gbc);
-	    constructorComboBox = createJComboBox(1, 3, centerPanel, gbl, gbc);
-	    createJButton(GENERATE, 2, 3, centerPanel, gbl, gbc).addActionListener(this);
+		constructorLabel = createJLabel("Constructor", 0, 3, centerPanel, gbl, gbc);
+		constructorComboBox = createJComboBox(1, 3, centerPanel, gbl, gbc);
+		createJButton(SET_VALUE, 2, 3, centerPanel, gbl, gbc).addActionListener(this);
 
-	    methodLabel =  createJLabel("Method", 0, 4, centerPanel, gbl, gbc);
-	    methodComboBox = createJComboBox(1, 4, centerPanel, gbl, gbc);
-	    createJButton(EXECUTE, 2, 4, centerPanel, gbl, gbc).addActionListener(this);
+		methodLabel = createJLabel("Method", 0, 4, centerPanel, gbl, gbc);
+		methodComboBox = createJComboBox(1, 4, centerPanel, gbl, gbc);
+		createJButton(EXECUTE, 2, 4, centerPanel, gbl, gbc).addActionListener(this);
 
-	    fieldLabel = createJLabel("Field", 0, 5, centerPanel, gbl, gbc);
-	    fieldComboBox = createJComboBox(1, 5, centerPanel, gbl, gbc);
+		fieldLabel = createJLabel("Field", 0, 5, centerPanel, gbl, gbc);
+		fieldComboBox = createJComboBox(1, 5, centerPanel, gbl, gbc);
+		createJButton(UPDATE, 2, 5, centerPanel, gbl, gbc).addActionListener(this);
 
-	    valueLabel = createJLabel("Value", 0, 6, centerPanel, gbl, gbc);
-	    valueTextField = createJTextField("", 1, 6, centerPanel, gbl, gbc);
-	    createJButton(UPDATE, 2, 6, centerPanel, gbl, gbc).addActionListener(this);
+		getContentPane().add(centerPanel, BorderLayout.CENTER);
+		///////////////////////////////////////////////////////////////////////////////////
 
-	    getContentPane().add(centerPanel, BorderLayout.CENTER);
-	    ///////////////////////////////////////////////////////////////////////////////////
-
-	    JPanel southPanel = new JPanel();
-	    JLabel southLabel = new JLabel("result");
-	    southTextArea = new JTextArea(10, 30);
-	    southPanel.add(southLabel);
-	    southPanel.add(southTextArea);
-	    getContentPane().add(southPanel, BorderLayout.SOUTH);
-	}
-
-	public static JComboBox<String> createJComboBox(int gx, int gy, JPanel jPanel, GridBagLayout gbl, GridBagConstraints gbc) {
-		gbc.gridx = gx;
-		gbc.gridy = gy;
-		JComboBox<String> comboBox = new JComboBox<String>();
-		comboBox.addItem("");
-		gbl.setConstraints(comboBox, gbc);
-		jPanel.add(comboBox);
-		return comboBox;
-	}
-
-	public static JLabel createJLabel(String str, int gx, int gy, JPanel jPanel, GridBagLayout gbl, GridBagConstraints gbc) {
-		gbc.gridx = gx;
-		gbc.gridy = gy;
-		JLabel label = new JLabel(str);
-		gbl.setConstraints(label, gbc);
-	    jPanel.add(label);
-	    return label;
-	}
-
-	public static JTextField createJTextField(String str, int gx, int gy, JPanel jPanel, GridBagLayout gbl, GridBagConstraints gbc) {
-		gbc.gridx = gx;
-		gbc.gridy = gy;
-		JTextField text = new JTextField(str, 20);
-		gbl.setConstraints(text, gbc);
-	    jPanel.add(text);
-	    return text;
-	}
-
-	public static JButton createJButton(String str, int gx, int gy, JPanel jPanel, GridBagLayout gbl, GridBagConstraints gbc) {
-		gbc.gridx = gx;
-		gbc.gridy = gy;
-		JButton button = new JButton(str);
-		gbl.setConstraints(button, gbc);
-	    jPanel.add(button);
-	    return button;
+		JPanel southPanel = new JPanel();
+		JLabel southLabel = new JLabel("result");
+		southTextArea = new JTextArea(30, 50);
+		JScrollPane scrollpane =  new JScrollPane(southTextArea);
+		southPanel.add(southLabel);
+		southPanel.add(scrollpane);
+		getContentPane().add(southPanel, BorderLayout.SOUTH);
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		final String className = typeTextField.getText();
 		final String methodName = (String) methodComboBox.getSelectedItem();
-		final String fieldName = (String) fieldComboBox.getSelectedItem();
+		//final String fieldName = (String) fieldComboBox.getSelectedItem();
+		int selectedArrayIndex = arrayComboBox.getSelectedIndex();
 
+		// arraySize に入力された大きさの配列を生成
 		if (e.getActionCommand().equals(DEFINE)) {
 			try {
-				// https://hacknote.jp/archives/23841/
-				objList = new ArrayList<Object>(Arrays.asList(InterpretFrameWork.generateArray(Object.class, Integer.parseInt(arrayTextField.getText()))));
+				final String arraySize = arrayTextField.getText();
+				InstancedObject.setArray(InterpretFrameWork.generateArray(Object.class, Integer.parseInt(arraySize)));
 				arrayComboBox.removeAllItems();
-				for (int i = 0 ; i < objList.size() ; i++) {
+				for (int i = 0; i < Integer.parseInt(arraySize); i++) {
 					arrayComboBox.addItem("Obj[" + Integer.toString(i) + "]");
 				}
-			} catch (NumberFormatException e1) {
-				southTextArea.setText(e1.toString());
-				e1.printStackTrace();
+			} catch (Exception e1) {
+				printError(e1);
 			}
 		}
 
+		// クラスが存在するかを確認し、あればコンストラクタ、メソッド、フィールドを取得
 		if (e.getActionCommand().equals(ISEXIST)) {
 			// コンストラクタ一覧を取得し、表示
 			constructorComboBox.removeAllItems();
+			constructorList.clear();
 			southTextArea.setText(typeTextField.getText() + " is exist.");
 			try {
 				for (Constructor<?> cons : InterpretFrameWork.getConstractor(className)) {
-					constructorComboBox.addItem(cons.getName());
+					constructorComboBox.addItem(cons.toString());
+					constructorList.add(cons);
 				}
-			} catch (ClassNotFoundException e1) {
-				southTextArea.setText(e1.toString());
-				e1.printStackTrace();
+			} catch (Exception e1) {
+				printError(e1);
 			}
 
 			// メソッド一覧を取得し、表示
 			methodComboBox.removeAllItems();
+			methodList.clear();
 			try {
 				for (Method method : InterpretFrameWork.getMethods(className)) {
-					methodComboBox.addItem(method.getName());
+					methodComboBox.addItem(method.toString());
+					methodList.add(method);
 				}
-			} catch (ClassNotFoundException e1) {
-				southTextArea.setText(e1.toString());
-				e1.printStackTrace();
+			} catch (Exception e1) {
+				printError(e1);
 			}
 
 			// フィールド一覧を取得し、表示
 			fieldComboBox.removeAllItems();
+			fieldList.clear();
 			try {
 				for (Field field : InterpretFrameWork.getFields(className)) {
-					fieldComboBox.addItem(field.getName());
+					fieldComboBox.addItem(field.toString());
+					fieldList.add(field);
 				}
-			} catch (ClassNotFoundException e1) {
-				southTextArea.setText(e1.toString());
-				e1.printStackTrace();
+			} catch (Exception e1) {
+				printError(e1);
 			}
 		}
 
-		if (e.getActionCommand().equals(GENERATE)) {
+		if (e.getActionCommand().equals(SET_VALUE)) {
 			try {
-				objList.add(arrayComboBox.getSelectedIndex(), InterpretFrameWork.generateObject(className));
-				southTextArea.setText("Generated.");
-			} catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException
-					| ClassNotFoundException e1) {
-				southTextArea.setText(e1.toString());
-				e1.printStackTrace();
+				int selectedConsIndex = constructorComboBox.getSelectedIndex();
+				ConstructorScreen consFrame = new ConstructorScreen(
+				constructorList.get(selectedConsIndex), selectedArrayIndex);
+				consFrame.setVisible(true);
+			} catch (Exception e1) {
+				printError(e1);
 			}
+			southTextArea.setText("Generated.");
 		}
 
 		if (e.getActionCommand().equals(EXECUTE)) {
 			try {
-				InterpretFrameWork.invokeMethod(className, methodName, objList.get(arrayComboBox.getSelectedIndex()));
+				int selectedMethodIndex = methodComboBox.getSelectedIndex();
+				MethodScreen methodFrame = new MethodScreen(methodList.get(selectedMethodIndex), selectedArrayIndex);
+				methodFrame.setVisible(true);
 				southTextArea.setText(methodName + " is invoked.");
-			} catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException
-					| ClassNotFoundException e1) {
-				southTextArea.setText(e1.toString());
-				e1.printStackTrace();
+			} catch (Exception e1) {
+				printError(e1);
 			}
 		}
 
 		if (e.getActionCommand().equals(UPDATE)) {
 			try {
-				InterpretFrameWork.updateField(className, fieldName, valueTextField.getText(), objList.get(arrayComboBox.getSelectedIndex()));
-				southTextArea.setText(fieldName + " is updated.");
-			} catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException
-					| ClassNotFoundException | NoSuchFieldException e1) {
-				southTextArea.setText(e1.toString());
-				e1.printStackTrace();
+				int selectedFieldIndex = fieldComboBox.getSelectedIndex();
+				FieldScreen fieldScreen = new FieldScreen(fieldList.get(selectedFieldIndex), selectedArrayIndex);
+				fieldScreen.setVisible(true);
+			} catch (Exception e1) {
+				printError(e1);
 			}
 		}
 	}
 
-	public static void main(String args[]){
+	public static void printError(Exception e) {
+		StringWriter stackTraceWriter = new StringWriter();
+		e.printStackTrace(new PrintWriter(stackTraceWriter));
+		southTextArea.setText(stackTraceWriter.toString());
+	}
+
+	public static void main(String args[]) {
 		// https://www.javadrive.jp/tutorial/
-	    InterpretScreen frame = new InterpretScreen();
-	    frame.setVisible(true);
-	  }
+		InterpretScreen frame = new InterpretScreen();
+		frame.setVisible(true);
+	}
 }

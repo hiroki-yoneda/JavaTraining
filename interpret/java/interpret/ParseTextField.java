@@ -1,6 +1,9 @@
 package interpret;
 
+import java.awt.Color;
+import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class ParseTextField {
@@ -25,6 +28,21 @@ public class ParseTextField {
 			return Integer.parseInt(text);
 		} else if (clazz.getTypeName().contains("Double") || clazz.getTypeName().contains("double")) {
 			return Double.parseDouble(text);
+		} else if (clazz.getTypeName().contains("boolean")) {
+			if (Objects.equals(text, "true")) {
+				return true;
+			}
+			return false;
+		} else if (clazz.getTypeName().contains("Color")) {
+			Color color = null;
+			try {
+				Field field = Class.forName("java.awt.Color").getField(text);
+				color = (Color) field.get(null);
+			} catch (Exception e) {
+				System.out.println("error");
+				color = null;
+			}
+			return color;
 		}
 		// TODO every cast
 

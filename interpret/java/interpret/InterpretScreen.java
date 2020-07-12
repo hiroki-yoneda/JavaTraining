@@ -24,6 +24,7 @@ import javax.swing.JTextField;
 import interpret.subScreen.ConstructorScreen;
 import interpret.subScreen.FieldScreen;
 import interpret.subScreen.MethodScreen;
+import interpret.subScreen.ShowFieldsScreen;
 
 public class InterpretScreen extends JFrameUtils implements ActionListener {
 
@@ -36,6 +37,7 @@ public class InterpretScreen extends JFrameUtils implements ActionListener {
 	private static final String EXECUTE = "execute";
 	private static final String SET_VALUE = "set_value";
 	private static final String UPDATE = "update";
+	private static final String SHOW_FIELDS = "show_fields";
 
 	private static JLabel arraySizeLabel, arrayLabel, typeLabel, constructorLabel, methodLabel, fieldLabel, valueLabel;
 	private static JTextField arrayTextField, typeTextField, valueTextField;
@@ -61,7 +63,7 @@ public class InterpretScreen extends JFrameUtils implements ActionListener {
 		arrayComboBox = createJComboBox(1, 1, centerPanel, gbl, gbc);
 
 		typeLabel = createJLabel("Type", 0, 2, centerPanel, gbl, gbc);
-		typeTextField = createJTextField("interpret.TestClass", 1, 2, centerPanel, gbl, gbc);
+		typeTextField = createJTextField("java.awt.Frame", 1, 2, centerPanel, gbl, gbc);
 		createJButton(ISEXIST, 2, 2, centerPanel, gbl, gbc).addActionListener(this);
 
 		constructorLabel = createJLabel("Constructor", 0, 3, centerPanel, gbl, gbc);
@@ -76,12 +78,14 @@ public class InterpretScreen extends JFrameUtils implements ActionListener {
 		fieldComboBox = createJComboBox(1, 5, centerPanel, gbl, gbc);
 		createJButton(UPDATE, 2, 5, centerPanel, gbl, gbc).addActionListener(this);
 
+		createJButton(SHOW_FIELDS, 2, 6, centerPanel, gbl, gbc).addActionListener(this);
+
 		getContentPane().add(centerPanel, BorderLayout.CENTER);
 		///////////////////////////////////////////////////////////////////////////////////
 
 		JPanel southPanel = new JPanel();
 		JLabel southLabel = new JLabel("result");
-		southTextArea = new JTextArea(30, 50);
+		southTextArea = new JTextArea(10, 40);
 		JScrollPane scrollpane =  new JScrollPane(southTextArea);
 		southPanel.add(southLabel);
 		southPanel.add(scrollpane);
@@ -181,12 +185,26 @@ public class InterpretScreen extends JFrameUtils implements ActionListener {
 				printError(e1);
 			}
 		}
+
+		if (e.getActionCommand().equals(SHOW_FIELDS)) {
+			ShowFieldsScreen showFieldsScreen = new ShowFieldsScreen(className, selectedArrayIndex);
+			showFieldsScreen.setVisible(true);
+		}
+	}
+
+	public static void printResult(String str) {
+		southTextArea.setText(str);
 	}
 
 	public static void printError(Exception e) {
-		StringWriter stackTraceWriter = new StringWriter();
-		e.printStackTrace(new PrintWriter(stackTraceWriter));
-		southTextArea.setText(stackTraceWriter.toString());
+		try {
+			southTextArea.setText(e.getCause().toString());
+		} catch (Exception e1) {
+			StringWriter stackTraceWriter = new StringWriter();
+			e.printStackTrace(new PrintWriter(stackTraceWriter));
+			southTextArea.setText(stackTraceWriter.toString());
+		}
+
 	}
 
 	public static void main(String args[]) {

@@ -7,7 +7,8 @@ public class TestClass {
 	public String publicField = "public field";
 	private final String privateFinalField = "privateFinalField";
 	private String privateString;
-	public Integer integer;
+	public Integer integer = 10;
+	public String testName = "test test";
 
 	public TestClass(){
 		System.out.println("引数なしTestClass");
@@ -23,8 +24,8 @@ public class TestClass {
 		System.out.println("引数ありTestClass" + string + " " + integer);
 	}
 
-	public void getValue() {
-		System.out.println("String: " + privateString + " Integer: " + integer);
+	public Integer getValue() {
+		return integer;
 	}
 
 	public void printPublicField() {

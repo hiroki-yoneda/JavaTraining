@@ -59,7 +59,8 @@ public class InterpretFrameWork {
 
 	public static Method[] getMethods(String className) throws ClassNotFoundException {
 		Class<?> clazz = Class.forName(className);
-		return clazz.getDeclaredMethods();
+//		return clazz.getDeclaredMethods(); // selfClass all methods
+		return clazz.getMethods(); // selfClass and superClass public methods
 	}
 
 	public static void invokeMethod(Method method, Object instancedClass, Object... args)
@@ -67,9 +68,15 @@ public class InterpretFrameWork {
 			ClassNotFoundException {
 		method.setAccessible(true);
 		if (args.length == 0) {
+			if (method.getReturnType() != void.class) {
+				InterpretScreen.printResult(method.invoke(instancedClass).toString());
+			}
 			method.invoke(instancedClass);
 		}
 		if (args.length > 0) {
+			if (method.getReturnType() != void.class) {
+				InterpretScreen.printResult(method.invoke(instancedClass, args).toString());
+			}
 			method.invoke(instancedClass, args);
 		}
 	}

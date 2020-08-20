@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 
 import interpret.InstancedObject;
 import interpret.InterpretFrameWork;
@@ -23,7 +23,8 @@ public class MethodScreen extends JFrameUtils implements ActionListener {
 
 	private static final String INVOKE = "invoke";
 	private int argFieldNum = 0;
-	private List<JTextField> textFieldList = new ArrayList<>();
+//	private List<JTextField> textFieldList = new ArrayList<>();
+	private List<JComboBox<String>> comboBoxList = new ArrayList<JComboBox<String>>();
 	private List<Class<?>> clazzList = new ArrayList<>();
 	private Method method;
 	private int insArrayIndex;
@@ -42,7 +43,8 @@ public class MethodScreen extends JFrameUtils implements ActionListener {
 		Class<?>[] clazzes = method.getParameterTypes();
 		for (Class<?> clazz : clazzes) {
 			createJLabel(clazz.getTypeName(), 0, argFieldNum, jPanel, gbl, gbc);
-			textFieldList.add(createJTextField("", 1, argFieldNum, jPanel, gbl, gbc));
+//			textFieldList.add(createJTextField("", 1, argFieldNum, jPanel, gbl, gbc));
+			comboBoxList.add(createEditableJComboBox(1, argFieldNum, jPanel, gbl, gbc, InstancedObject.getSize()));
 			clazzList.add(clazz);
 			argFieldNum++;
 		}
@@ -60,7 +62,15 @@ public class MethodScreen extends JFrameUtils implements ActionListener {
 		if (e.getActionCommand().equals(INVOKE)) {
 			final List<Object> args = new ArrayList<>();
 			for (int i = 0; i < argFieldNum; i++) {
-				args.add(ParseTextField.parseText(textFieldList.get(i).getText(), clazzList.get(i)));
+//				args.add(ParseTextField.parseText(textFieldList.get(i).getText(), clazzList.get(i)));
+				int selectedIndex = comboBoxList.get(i).getSelectedIndex();
+				System.out.println(selectedIndex);
+				if (selectedIndex < 0) {
+					System.out.println(comboBoxList.get(i).getEditor().getItem().toString());
+					args.add(ParseTextField.parseText(comboBoxList.get(i).getEditor().getItem().toString(), clazzList.get(i)));
+				} else {
+					args.add(InstancedObject.get(selectedIndex));
+				}
 			}
 			try {
 				InterpretFrameWork.invokeMethod(method, InstancedObject.get(insArrayIndex), args.toArray());

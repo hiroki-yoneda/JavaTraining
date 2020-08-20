@@ -20,4 +20,8 @@ public class InstancedObject {
 	public static Object get(int index) {
 		return objList.get(index);
 	}
+
+	public static int getSize() {
+		return objList.size();
+	}
 }

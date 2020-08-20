@@ -1,5 +1,6 @@
 package interpret;
 
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
@@ -50,5 +51,19 @@ public class JFrameUtils extends JFrame {
 		gbl.setConstraints(button, gbc);
 		jPanel.add(button);
 		return button;
+	}
+
+	public static JComboBox<String> createEditableJComboBox(int gx, int gy, JPanel jPanel, GridBagLayout gbl,
+			GridBagConstraints gbc, int tabNum){
+		gbc.gridx = gx;
+		gbc.gridy = gy;
+		JComboBox<String> comboBox = new JComboBox<String>();
+		comboBox.setEditable(true);
+		comboBox.addItem("");
+		java.util.stream.IntStream.range(0, tabNum - 1).forEach(n -> comboBox.addItem(String.valueOf(n)));
+		comboBox.setPreferredSize(new Dimension(240, 20));
+		gbl.setConstraints(comboBox, gbc);
+		jPanel.add(comboBox);
+		return comboBox;
 	}
 }

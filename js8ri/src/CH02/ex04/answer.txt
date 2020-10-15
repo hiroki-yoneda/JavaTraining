@@ -1,0 +1,3 @@
+Stream.of(int[]) => Stream<int[]> を返す。
+Arrays.stream(int[]) => IntStream を返すので、Arrays.stream() を使う。
+参考：https://mkyong.com/java8/java-how-to-convert-array-to-stream/

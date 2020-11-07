@@ -1,0 +1,5 @@
+CompletableFuture#thenCompose
+
+https://docs.oracle.com/javase/jp/8/docs/api/java/util/concurrent/CompletableFuture.html#thenCompose-java.util.function.Function-
+https://docs.oracle.com/javase/jp/9/docs/api/java/util/concurrent/CompletableFuture.html
+https://stackoverflow.com/questions/38885262/what-is-completablefutures-equivalent-of-flatmap

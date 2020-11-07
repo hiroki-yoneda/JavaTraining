@@ -1,0 +1,5 @@
+compose の返り値は、Function 型だけど、transform メソッドの第二引数は UnaryOperator 型なので呼び出しできない。
+Function: https://docs.oracle.com/javase/jp/8/docs/api/java/util/function/Function.html#compose-java.util.function.Function-
+
+
+どちらが便利かは、わからない。

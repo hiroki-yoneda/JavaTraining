@@ -1,0 +1,5 @@
+BiFunction<U, ? super T ,U> の apply 返り値は、 U になっている。
+U 以外を引数として受け取りたい場合は、? super U に書き換えた方がよい。
+
+reduce(): https://docs.oracle.com/javase/jp/8/docs/api/java/util/stream/Stream.html#reduce-java.util.function.BinaryOperator-
+BiFunction : https://docs.oracle.com/javase/jp/8/docs/api/java/util/function/BiFunction.html
